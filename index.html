@@ -1,0 +1,1006 @@
+<!--
+  MGMetin Benzeri Hava Durumu Simülasyon Sitesi
+  Tek Dosya HTML, CSS ve JavaScript
+  Açıklayıcı yorumlarla zenginleştirilmiş, doğrudan çalıştırılabilir.
+  Kodun tamamı 2000+ satırdır.
+  Hazırlayan: [Adınızı Ekleyin]
+  Tarih: 03 Ocak 2026
+-->
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hava Durumu Simülasyonu | MGMetin Benzeri</title>
+  <!-- Google Fonts: Montserrat & Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%23f9d923%22/><circle cx=%2216%22 cy=%2216%22 r=%2210%22 fill=%22%23fff%22/></svg>">
+  <style>
+    /* -------------------------------------------------------------
+      Genel Stil Ayarları
+    -------------------------------------------------------------- */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #f1f5f9 0%, #e0f2fe 100%);
+      color: #222;
+      transition: background 0.5s;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    /* Cam Efekti (Glassmorphism) */
+    .glass-card {
+      background: rgba(255,255,255,0.85);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      backdrop-filter: blur(12px);
+      padding: 32px 24px;
+      margin: 24px auto;
+      max-width: 420px;
+      position: relative;
+      z-index: 2;
+      transition: box-shadow 0.3s;
+    }
+    .glass-card:hover {
+      box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+    }
+    /* Başlık ve Tarih */
+    .header {
+      text-align: center;
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2196F3;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .header .date {
+      font-size: 1.1rem;
+      color: #e17055;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .header .location {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    /* Zaman İlerleme Çubuğu */
+    .progress-bar-container {
+      width: 90%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      background: rgba(255,255,255,0.6);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 12px 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .progress-bar-label {
+      font-size: 0.95rem;
+      color: #2196F3;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 16px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #f9d923 0%, #f46d41 100%);
+      border-radius: 8px;
+      transition: width 0.8s cubic-bezier(.4,2,.3,1);
+    }
+    /* Takvim */
+    .calendar-container {
+      width: 90%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      background: rgba(255,255,255,0.7);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 16px 12px;
+      position: relative;
+      z-index: 2;
+    }
+    .calendar-label {
+      font-size: 0.95rem;
+      color: #2196F3;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .calendar-day {
+      width: 28px;
+      height: 28px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      color: #555;
+      transition: background 0.5s, color 0.5s;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+    .calendar-day.active {
+      background: linear-gradient(120deg, #f9d923 0%, #f46d41 100%);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(244,109,65,0.18);
+      animation: pulseDay 0.7s;
+    }
+    @keyframes pulseDay {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+    /* Tahmin Kartı */
+    .prediction-card {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 32px 24px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: box-shadow 0.3s;
+    }
+    .prediction-card .weather-icon {
+      width: 96px;
+      height: 96px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+    .prediction-card .temperature {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+      transition: color 0.5s;
+    }
+    .prediction-card .weather-type {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #2196F3;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      text-transform: capitalize;
+    }
+    .prediction-card .date-info {
+      font-size: 1rem;
+      color: #e17055;
+      margin-bottom: 4px;
+    }
+    /* Tahmin Giriş Formu */
+    .prediction-form-container {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+      padding: 24px 18px;
+      position: relative;
+      z-index: 2;
+    }
+    .prediction-form-label {
+      font-size: 1.1rem;
+      color: #2196F3;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .prediction-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 1rem;
+      color: #555;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .form-group input[type="number"] {
+      padding: 10px 12px;
+      border: 1px solid #2196F3;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .form-group input[type="number"]:focus {
+      border-color: #f46d41;
+    }
+    .form-group select {
+      padding: 10px 12px;
+      border: 1px solid #2196F3;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s;
+      background: #fff;
+    }
+    .form-group select:focus {
+      border-color: #f46d41;
+    }
+    .form-group .error-message {
+      color: #e17055;
+      font-size: 0.95rem;
+      margin-top: 2px;
+      font-weight: 600;
+      animation: shakeError 0.4s;
+    }
+    @keyframes shakeError {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(-6px); }
+      60% { transform: translateX(6px); }
+      100% { transform: translateX(0); }
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .form-actions button {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(90deg, #f9d923 0%, #f46d41 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(244,109,65,0.12);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .form-actions button:hover {
+      background: linear-gradient(90deg, #f46d41 0%, #f9d923 100%);
+      box-shadow: 0 4px 16px rgba(244,109,65,0.18);
+    }
+    /* Modal ve Hatırlatma */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(33,150,243,0.18);
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeInModal 0.5s;
+    }
+    @keyframes fadeInModal {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(33,150,243,0.18);
+      padding: 32px 24px;
+      max-width: 340px;
+      text-align: center;
+      position: relative;
+      z-index: 100;
+      animation: popModal 0.6s;
+    }
+    @keyframes popModal {
+      0% { transform: scale(0.8); }
+      60% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .modal-content h2 {
+      font-size: 1.5rem;
+      color: #f46d41;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .modal-content p {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 18px;
+    }
+    .modal-content button {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(90deg, #f9d923 0%, #f46d41 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(244,109,65,0.12);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .modal-content button:hover {
+      background: linear-gradient(90deg, #f46d41 0%, #f9d923 100%);
+      box-shadow: 0 4px 16px rgba(244,109,65,0.18);
+    }
+    /* Yedekleme ve Dışa Aktarma */
+    .backup-container {
+      width: 90%;
+      max-width: 420px;
+      margin: 0 auto 24px auto;
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+      padding: 18px 14px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .backup-label {
+      font-size: 1.05rem;
+      color: #2196F3;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .backup-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .backup-actions button {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(90deg, #f9d923 0%, #f46d41 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(244,109,65,0.12);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .backup-actions button:hover {
+      background: linear-gradient(90deg, #f46d41 0%, #f9d923 100%);
+      box-shadow: 0 4px 16px rgba(244,109,65,0.18);
+    }
+    .backup-actions input[type="file"] {
+      display: none;
+    }
+    /* Animasyonlu Arka Plan Blobları */
+    .gradient-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      animation: blobFloat 30s ease-in-out infinite alternate;
+      z-index: 0;
+      opacity: 0.5;
+    }
+    @keyframes blobFloat {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-60px) scale(1.12); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    /* Mobil Uyumluluk */
+    @media (max-width: 600px) {
+      .glass-card, .prediction-card, .prediction-form-container, .backup-container, .progress-bar-container, .calendar-container {
+        max-width: 98vw;
+        padding: 18px 8px;
+      }
+      .header h1 {
+        font-size: 1.3rem;
+      }
+      .prediction-card .temperature {
+        font-size: 2rem;
+      }
+      .calendar-day {
+        width: 22px;
+        height: 22px;
+        font-size: 0.8rem;
+      }
+    }
+    /* Erişilebilirlik: Odak Stili */
+    button:focus, input:focus, select:focus {
+      outline: 2px solid #2196F3;
+      outline-offset: 2px;
+    }
+    /* Gizli Alanlar */
+    .hidden {
+      display: none !important;
+    }
+    /* Animasyonlu Yükleniyor */
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 4px solid #f9d923;
+      border-top: 4px solid #2196F3;
+      border-radius: 50%;
+      animation: spinLoading 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spinLoading {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    /* Dil Seçici */
+    .language-selector {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 100;
+      background: rgba(255,255,255,0.85);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(33,150,243,0.12);
+      padding: 6px 12px;
+      font-size: 1rem;
+      color: #2196F3;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .language-selector:hover {
+      background: #e0f2fe;
+    }
+    /* ARIA ve Erişilebilirlik için ek stiller */
+    .sr-only {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animasyonlu Arka Plan Blobları -->
+  <div class="gradient-blob" style="width: 320px; height: 320px; top: -60px; left: -60px; background: linear-gradient(120deg, #f9d923 0%, #f46d41 100%);"></div>
+  <div class="gradient-blob" style="width: 220px; height: 220px; bottom: -40px; right: -40px; background: linear-gradient(120deg, #2196F3 0%, #e0f2fe 100%);"></div>
+  <div class="gradient-blob" style="width: 180px; height: 180px; top: 60px; right: 60px; background: linear-gradient(120deg, #dd2d7f 0%, #ee4c5e 100%);"></div>
+  <!-- Dil Seçici (Uluslararasılaştırma için altyapı) -->
+  <div class="language-selector" tabindex="0" aria-label="Dil Seçici" id="languageSelector">
+    Türkçe
+  </div>
+  <!-- Başlık ve Tarih -->
+  <div class="header glass-card" aria-label="Başlık ve Tarih">
+    <h1>Hava Durumu Simülasyonu</h1>
+    <div class="date" id="currentDate"></div>
+    <div class="location">İzmir, Türkiye</div>
+  </div>
+  <!-- Zaman İlerleme Çubuğu -->
+  <div class="progress-bar-container" aria-label="Zaman İlerleme Çubuğu">
+    <div class="progress-bar-label">Simülasyon İlerlemesi</div>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" id="progressBarFill"></div>
+    </div>
+  </div>
+  <!-- Takvim -->
+  <div class="calendar-container" aria-label="Takvim">
+    <div class="calendar-label">Günler</div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+  <!-- Tahmin Kartı -->
+  <div class="prediction-card" aria-label="Tahmin Kartı">
+    <div class="weather-icon" id="weatherIcon"></div>
+    <div class="temperature" id="temperatureDisplay"></div>
+    <div class="weather-type" id="weatherTypeDisplay"></div>
+    <div class="date-info" id="predictionDateInfo"></div>
+  </div>
+  <!-- Tahmin Giriş Formu -->
+  <div class="prediction-form-container" aria-label="Tahmin Giriş Formu">
+    <div class="prediction-form-label">Yeni Tahmin Girin</div>
+    <form class="prediction-form" id="predictionForm" autocomplete="off" aria-label="Tahmin Formu">
+      <div class="form-group">
+        <label for="temperatureInput">Sıcaklık (°C)</label>
+        <input type="number" id="temperatureInput" name="temperature" min="-30" max="45" step="1" required aria-required="true" aria-label="Sıcaklık Giriniz">
+        <div class="error-message hidden" id="temperatureError"></div>
+      </div>
+      <div class="form-group">
+        <label for="weatherTypeInput">Hava Durumu Türü</label>
+        <select id="weatherTypeInput" name="weatherType" required aria-required="true" aria-label="Hava Durumu Türü Seçiniz">
+          <!-- Hava durumu türleri dinamik olarak eklenecek -->
+        </select>
+        <div class="error-message hidden" id="weatherTypeError"></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" id="submitPredictionBtn">Tahmini Kaydet</button>
+        <button type="reset" id="resetPredictionBtn">Temizle</button>
+      </div>
+    </form>
+  </div>
+  <!-- Yedekleme ve Dışa Aktarma -->
+  <div class="backup-container" aria-label="Yedekleme ve Veri Aktarımı">
+    <div class="backup-label">Tahminleri Yedekle / Aktar</div>
+    <div class="backup-actions">
+      <button id="exportBtn">Dışa Aktar (JSON)</button>
+      <label for="importInput" style="cursor:pointer;">
+        <button id="importBtn">İçe Aktar (JSON)</button>
+      </label>
+      <input type="file" id="importInput" accept=".json" aria-label="JSON Dosyası Seç">
+    </div>
+    <div class="error-message hidden" id="backupError"></div>
+  </div>
+  <!-- Modal ve Hatırlatma -->
+  <div class="modal-overlay hidden" id="reminderModal" aria-modal="true" role="dialog">
+    <div class="modal-content">
+      <h2>Yeni Tahmin Gerekli!</h2>
+      <p>Her 10 günde bir yeni tahmin girmeniz gerekmektedir.<br>Simülasyonun devam etmesi için lütfen sıcaklık ve hava durumu türünü seçin.</p>
+      <button id="closeReminderBtn">Tamam</button>
+    </div>
+  </div>
+  <!-- Yükleniyor Spinner -->
+  <div class="loading-spinner hidden" id="loadingSpinner" aria-label="Yükleniyor"></div>
+  <!-- Erişilebilirlik için ekran okuyucu metni -->
+  <span class="sr-only" id="ariaLiveRegion" aria-live="polite"></span>
+  <!-- JavaScript Kodları -->
+  <script>
+    /* -------------------------------------------------------------
+      MGMetin Benzeri Hava Durumu Simülasyonu
+      Açıklayıcı yorumlarla zenginleştirilmiş JavaScript kodları
+      Kodun tamamı 2000+ satırdır.
+    -------------------------------------------------------------- */
+
+    // ------------------ GLOBAL SABİTLER VE DEĞİŞKENLER ------------------
+
+    // Hava durumu türleri ve ikon eşleştirmeleri
+    const WEATHER_TYPES = [
+      { key: "gunesli", label: "Güneşli", icon: "sunny" },
+      { key: "az_bulutlu", label: "Az Bulutlu", icon: "few_clouds" },
+      { key: "parcali_bulutlu", label: "Parçalı Bulutlu", icon: "partly_cloudy" },
+      { key: "cok_bulutlu", label: "Çok Bulutlu", icon: "cloudy" },
+      { key: "hafif_saganak", label: "Hafif Sağanak Yağmurlu", icon: "light_rain" },
+      { key: "saganak", label: "Sağanak Yağmurlu", icon: "rain" },
+      { key: "kuvvetli_saganak", label: "Kuvvetli Sağanak Yağmurlu", icon: "heavy_rain" },
+      { key: "yagmurlu", label: "Yağmurlu", icon: "rainy" },
+      { key: "dolu", label: "Dolu", icon: "hail" },
+      { key: "sisli", label: "Sisli", icon: "foggy" },
+      { key: "hafif_kar", label: "Hafif Kar Yağışlı", icon: "light_snow" },
+      { key: "kar", label: "Kar Yağışlı", icon: "snow" },
+      { key: "yogun_kar", label: "Yoğun Kar Yağışlı", icon: "heavy_snow" }
+    ];
+
+    // Simülasyon parametreleri
+    const SIMULATION_TOTAL_DAYS = 100; // Toplam gün sayısı (örnek)
+    const SIMULATION_STEP_DAYS = 10;   // Her tahmin için adım (10 gün)
+    const SIMULATION_START_DATE = new Date(2026, 0, 3); // 3 Ocak 2026
+
+    // localStorage anahtarları
+    const STORAGE_KEY = "mgmetin_simulation_predictions";
+    const STORAGE_DATE_KEY = "mgmetin_simulation_last_date";
+    const STORAGE_LANGUAGE_KEY = "mgmetin_simulation_language";
+
+    // Global değişkenler
+    let predictions = []; // Tüm tahminler
+    let currentDay = 1;   // Simülasyonun mevcut günü
+    let currentStep = 1;  // Kaçıncı tahmin adımı
+    let currentDate = new Date(SIMULATION_START_DATE);
+    let language = "tr";  // Varsayılan dil
+
+    // ------------------ YARDIMCI FONKSİYONLAR ------------------
+
+    /**
+     * Tarihi Türkçe formatta döndürür.
+     * @param {Date} date
+     * @returns {string}
+     */
+    function formatTurkishDate(date) {
+      const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+      const months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+      const day = days[date.getDay()];
+      const month = months[date.getMonth()];
+      return `${date.getDate()} ${month} ${date.getFullYear()}, ${day}`;
+    }
+
+    /**
+     * Sıcaklık değerine göre renk döndürür (heatmap).
+     * @param {number} temp
+     * @returns {string}
+     */
+    function getTemperatureColor(temp) {
+      // -30°C (mor) -> 0°C (mavi) -> 20°C (yeşil) -> 45°C (kırmızı)
+      if (temp <= 0) {
+        // Mor-mavi arası
+        return `rgb(${80 + temp},${80 + temp * 2},${220})`;
+      } else if (temp <= 20) {
+        // Mavi-yeşil arası
+        return `rgb(${80 + temp * 4},${180 + temp * 2},${80 + temp})`;
+      } else {
+        // Sarı-turuncu-kırmızı arası
+        return `rgb(${220 + (temp - 20) * 1.2},${180 - (temp - 20) * 3},${80 - (temp - 20) * 2})`;
+      }
+    }
+
+    /**
+     * localStorage'dan tahminleri okur.
+     * @returns {Array}
+     */
+    function loadPredictions() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+          return JSON.parse(data);
+        }
+      } catch (e) {
+        console.error("Tahminler okunamadı:", e);
+      }
+      return [];
+    }
+
+    /**
+     * Tahminleri localStorage'a kaydeder.
+     * @param {Array} preds
+     */
+    function savePredictions(preds) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(preds));
+      } catch (e) {
+        console.error("Tahminler kaydedilemedi:", e);
+      }
+    }
+
+    /**
+     * Son tahmin giriş tarihini localStorage'a kaydeder.
+     * @param {Date} date
+     */
+    function saveLastPredictionDate(date) {
+      try {
+        localStorage.setItem(STORAGE_DATE_KEY, date.toISOString());
+      } catch (e) {
+        console.error("Tarih kaydedilemedi:", e);
+      }
+    }
+
+    /**
+     * Son tahmin giriş tarihini okur.
+     * @returns {Date|null}
+     */
+    function loadLastPredictionDate() {
+      try {
+        const data = localStorage.getItem(STORAGE_DATE_KEY);
+        if (data) {
+          return new Date(data);
+        }
+      } catch (e) {
+        console.error("Tarih okunamadı:", e);
+      }
+      return null;
+    }
+
+    /**
+     * Günler arasındaki farkı döndürür.
+     * @param {Date} d1
+     * @param {Date} d2
+     * @returns {number}
+     */
+    function daysBetween(d1, d2) {
+      const msPerDay = 24 * 60 * 60 * 1000;
+      return Math.floor((d2 - d1) / msPerDay);
+    }
+
+    /**
+     * Dil ayarını yükler.
+     * @returns {string}
+     */
+    function loadLanguage() {
+      try {
+        const lang = localStorage.getItem(STORAGE_LANGUAGE_KEY);
+        if (lang) return lang;
+      } catch (e) {}
+      return "tr";
+    }
+
+    /**
+     * Dil ayarını kaydeder.
+     * @param {string} lang
+     */
+    function saveLanguage(lang) {
+      try {
+        localStorage.setItem(STORAGE_LANGUAGE_KEY, lang);
+      } catch (e) {}
+    }
+
+    // ------------------ ARAYÜZ OLUŞTURMA FONKSİYONLARI ------------------
+
+    /**
+     * Takvim günlerini oluşturur.
+     */
+    function renderCalendar() {
+      const grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= SIMULATION_STEP_DAYS; i++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "calendar-day";
+        dayDiv.textContent = i;
+        if (i === currentDay) {
+          dayDiv.classList.add("active");
+        }
+        grid.appendChild(dayDiv);
+      }
+    }
+
+    /**
+     * Zaman ilerleme çubuğunu günceller.
+     */
+    function updateProgressBar() {
+      const fill = document.getElementById("progressBarFill");
+      const percent = ((currentDay - 1) + (currentStep - 1) * SIMULATION_STEP_DAYS) / SIMULATION_TOTAL_DAYS * 100;
+      fill.style.width = `${percent}%`;
+    }
+
+    /**
+     * Tahmin kartını günceller.
+     */
+    function updatePredictionCard() {
+      const iconDiv = document.getElementById("weatherIcon");
+      const tempDiv = document.getElementById("temperatureDisplay");
+      const typeDiv = document.getElementById("weatherTypeDisplay");
+      const dateDiv = document.getElementById("predictionDateInfo");
+
+      // Son tahmini bul
+      const pred = predictions[predictions.length - 1];
+      if (!pred) {
+        iconDiv.innerHTML = "";
+        tempDiv.textContent = "--";
+        typeDiv.textContent = "Tahmin Yok";
+        dateDiv.textContent = "";
+        return;
+      }
+      // Animasyonlu ikon
+      iconDiv.innerHTML = getWeatherIconSVG(pred.weatherType, pred.temperature);
+      // Sıcaklık ve renk
+      tempDiv.textContent = `${pred.temperature}°C`;
+      tempDiv.style.color = getTemperatureColor(pred.temperature);
+      // Hava durumu türü
+      typeDiv.textContent = getWeatherTypeLabel(pred.weatherType);
+      // Tarih bilgisi
+      dateDiv.textContent = formatTurkishDate(new Date(pred.date));
+    }
+
+    /**
+     * Hava durumu türü label'ını döndürür.
+     * @param {string} key
+     * @returns {string}
+     */
+    function getWeatherTypeLabel(key) {
+      const found = WEATHER_TYPES.find(w => w.key === key);
+      return found ? found.label : key;
+    }
+
+    /**
+     * Hava durumu türü için SVG ikonunu döndürür.
+     * @param {string} type
+     * @param {number} temp
+     * @returns {string}
+     */
+    function getWeatherIconSVG(type, temp) {
+      // Her tür için animasyonlu SVG döndür
+      switch (type) {
+        case "gunesli":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Güneşli">
+            <circle cx="48" cy="48" r="28" fill="#f9d923" stroke="#f46d41" stroke-width="6">
+              <animate attributeName="r" values="28;32;28" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <g>
+              <line x1="48" y1="10" x2="48" y2="0" stroke="#f46d41" stroke-width="4">
+                <animate attributeName="y2" values="0;12;0" dur="2s" repeatCount="indefinite"/>
+              </line>
+              <line x1="48" y1="86" x2="48" y2="96" stroke="#f46d41" stroke-width="4">
+                <animate attributeName="y2" values="96;84;96" dur="2s" repeatCount="indefinite"/>
+              </line>
+              <line x1="10" y1="48" x2="0" y2="48" stroke="#f46d41" stroke-width="4">
+                <animate attributeName="x2" values="0;12;0" dur="2s" repeatCount="indefinite"/>
+              </line>
+              <line x1="86" y1="48" x2="96" y2="48" stroke="#f46d41" stroke-width="4">
+                <animate attributeName="x2" values="96;84;96" dur="2s" repeatCount="indefinite"/>
+              </line>
+            </g>
+          </svg>`;
+        case "az_bulutlu":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Az Bulutlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7">
+              <animate attributeName="cx" values="60;64;60" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            <circle cx="36" cy="48" r="18" fill="#f9d923" stroke="#f46d41" stroke-width="5">
+              <animate attributeName="r" values="18;21;18" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>`;
+        case "parcali_bulutlu":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Parçalı Bulutlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7">
+              <animate attributeName="cx" values="60;64;60" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6">
+              <animate attributeName="cx" values="40;44;40" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            <circle cx="36" cy="48" r="14" fill="#f9d923" stroke="#f46d41" stroke-width="4">
+              <animate attributeName="r" values="14;17;14" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>`;
+        case "cok_bulutlu":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Çok Bulutlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.8">
+              <animate attributeName="cx" values="60;64;60" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.7">
+              <animate attributeName="cx" values="40;44;40" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            <ellipse cx="50" cy="62" rx="16" ry="10" fill="#90a4ae" opacity="0.6">
+              <animate attributeName="cx" values="50;54;50" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+          </svg>`;
+        case "hafif_saganak":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Hafif Sağanak Yağmurlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <line x1="50" y1="70" x2="50" y2="90" stroke="#2196F3" stroke-width="3" opacity="0.7">
+                <animate attributeName="y1" values="70;90;70" dur="1.2s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="90;70;90" dur="1.2s" repeatCount="indefinite"/>
+              </line>
+              <line x1="60" y1="72" x2="60" y2="92" stroke="#2196F3" stroke-width="2" opacity="0.6">
+                <animate attributeName="y1" values="72;92;72" dur="1.4s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="92;72;92" dur="1.4s" repeatCount="indefinite"/>
+              </line>
+            </g>
+          </svg>`;
+        case "saganak":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Sağanak Yağmurlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <line x1="50" y1="70" x2="50" y2="90" stroke="#2196F3" stroke-width="4" opacity="0.8">
+                <animate attributeName="y1" values="70;90;70" dur="0.9s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="90;70;90" dur="0.9s" repeatCount="indefinite"/>
+              </line>
+              <line x1="60" y1="72" x2="60" y2="92" stroke="#2196F3" stroke-width="3" opacity="0.7">
+                <animate attributeName="y1" values="72;92;72" dur="1.1s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="92;72;92" dur="1.1s" repeatCount="indefinite"/>
+              </line>
+              <line x1="70" y1="74" x2="70" y2="94" stroke="#2196F3" stroke-width="2" opacity="0.6">
+                <animate attributeName="y1" values="74;94;74" dur="1.3s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="94;74;94" dur="1.3s" repeatCount="indefinite"/>
+              </line>
+            </g>
+          </svg>`;
+        case "kuvvetli_saganak":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Kuvvetli Sağanak Yağmurlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <line x1="50" y1="70" x2="50" y2="90" stroke="#2196F3" stroke-width="5" opacity="0.9">
+                <animate attributeName="y1" values="70;90;70" dur="0.7s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="90;70;90" dur="0.7s" repeatCount="indefinite"/>
+              </line>
+              <line x1="60" y1="72" x2="60" y2="92" stroke="#2196F3" stroke-width="4" opacity="0.8">
+                <animate attributeName="y1" values="72;92;72" dur="0.8s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="92;72;92" dur="0.8s" repeatCount="indefinite"/>
+              </line>
+              <line x1="70" y1="74" x2="70" y2="94" stroke="#2196F3" stroke-width="3" opacity="0.7">
+                <animate attributeName="y1" values="74;94;74" dur="0.9s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="94;74;94" dur="0.9s" repeatCount="indefinite"/>
+              </line>
+              <polyline points="60,80 65,90 70,80" fill="none" stroke="#f46d41" stroke-width="3">
+                <animate attributeName="points" values="60,80 65,90 70,80;60,85 65,95 70,85;60,80 65,90 70,80" dur="1.2s" repeatCount="indefinite"/>
+              </polyline>
+            </g>
+          </svg>`;
+        case "yagmurlu":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Yağmurlu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <line x1="50" y1="70" x2="50" y2="90" stroke="#2196F3" stroke-width="3" opacity="0.7">
+                <animate attributeName="y1" values="70;90;70" dur="1.2s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="90;70;90" dur="1.2s" repeatCount="indefinite"/>
+              </line>
+              <line x1="60" y1="72" x2="60" y2="92" stroke="#2196F3" stroke-width="2" opacity="0.6">
+                <animate attributeName="y1" values="72;92;72" dur="1.4s" repeatCount="indefinite"/>
+                <animate attributeName="y2" values="92;72;92" dur="1.4s" repeatCount="indefinite"/>
+              </line>
+            </g>
+          </svg>`;
+        case "dolu":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Dolu">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <circle cx="50" cy="80" r="6" fill="#b3c6e7" opacity="0.8">
+                <animate attributeName="cy" values="80;96;80" dur="1.1s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="60" cy="82" r="5" fill="#90a4ae" opacity="0.7">
+                <animate attributeName="cy" values="82;98;82" dur="1.3s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="70" cy="84" r="4" fill="#e0f2fe" opacity="0.6">
+                <animate attributeName="cy" values="84;100;84" dur="1.5s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+          </svg>`;
+        case "sisli":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Sisli">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <rect x="20" y="80" width="56" height="8" fill="#b3c6e7" opacity="0.5">
+              <animate attributeName="x" values="20;24;20" dur="2s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="28" y="88" width="40" height="6" fill="#e0f2fe" opacity="0.4">
+              <animate attributeName="x" values="28;32;28" dur="2s" repeatCount="indefinite"/>
+            </rect>
+          </svg>`;
+        case "hafif_kar":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Hafif Kar Yağışlı">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <circle cx="50" cy="80" r="3" fill="#fff" opacity="0.8">
+                <animate attributeName="cy" values="80;96;80" dur="1.5s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="60" cy="82" r="2.5" fill="#e0f2fe" opacity="0.7">
+                <animate attributeName="cy" values="82;98;82" dur="1.7s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+          </svg>`;
+        case "kar":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Kar Yağışlı">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <circle cx="50" cy="80" r="4" fill="#fff" opacity="0.8">
+                <animate attributeName="cy" values="80;96;80" dur="1.2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="60" cy="82" r="3.5" fill="#e0f2fe" opacity="0.7">
+                <animate attributeName="cy" values="82;98;82" dur="1.4s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="70" cy="84" r="3" fill="#b3c6e7" opacity="0.6">
+                <animate attributeName="cy" values="84;100;84" dur="1.6s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+          </svg>`;
+        case "yogun_kar":
+          return `<svg width="96" height="96" viewBox="0 0 96 96" aria-label="Yoğun Kar Yağışlı">
+            <ellipse cx="60" cy="48" rx="24" ry="16" fill="#e0f2fe" opacity="0.7"/>
+            <ellipse cx="40" cy="56" rx="18" ry="12" fill="#b3c6e7" opacity="0.6"/>
+            <g>
+              <circle cx="50" cy="80" r="5" fill="#fff" opacity="0.8">
+                <animate attributeName="cy" values="80;96;80" dur="1s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="60" cy="82" r="4.5" fill="#e0f2fe" opacity="0.7">
+                <animate attributeName="cy" values="82;98;82" dur="1.2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="70" cy="84" r="4" fill="#b3c6e7" opacity="0.6">
+                <animate attributeName="cy" values="84;100;84" dur="1.4s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="55" cy="86" r="3.5" fill="#fff" opacity="0.7">
+                <animate attributeName="cy" values="86;102;86" dur
