@@ -3,7 +3,7 @@
    ============================================================ */
 
 /* API AYARLARI */
-const apiKey = "BURAYA_OPENWEATHERMAP_API_KEY"; // kendi API anahtarını buraya ekle
+const apiKey = "46b0d0f9fd4363441ce3001b2c1e782c"; // kendi API anahtarını buraya ekle
 
 /* GLOBAL DEĞİŞKENLER */
 let canvas, ctx;
