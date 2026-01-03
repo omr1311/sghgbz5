@@ -1,216 +1,373 @@
 /* ===============================
-   GENEL STİLLER
+   style.css - Hava Durumu Simülasyonu
+   Temel düzen, tema, animasyonlar ve responsive
    =============================== */
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(to bottom, #4facfe, #00f2fe);
-  color: #fff;
-  overflow-x: hidden;
-  transition: background 1s ease;
+
+/* ---------- Root variables ---------- */
+:root {
+  --bg-top: #4facfe;
+  --bg-bottom: #00f2fe;
+  --panel-bg: rgba(0,0,0,0.28);
+  --panel-strong: rgba(255,255,255,0.08);
+  --accent: #ff9800;
+  --accent-dark: #e68900;
+  --text: #ffffff;
+  --muted: rgba(255,255,255,0.85);
+  --glass-blur: 8px;
+  --radius: 12px;
+  --control-z: 9999;
 }
 
+/* ---------- Global ---------- */
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* Smooth transitions for theme changes */
+body, header, main, table, button, input {
+  transition: background 300ms ease, color 300ms ease, transform 150ms ease, opacity 200ms ease;
+}
+
+/* ---------- Header and Search ---------- */
 header {
+  position: relative;
+  z-index: 50;
+  padding: 18px 20px;
   text-align: center;
-  padding: 20px;
-  background: rgba(0,0,0,0.3);
-  backdrop-filter: blur(6px);
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 header h1 {
   margin: 0;
-  font-size: 2em;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  font-size: 1.6rem;
+  letter-spacing: 1px;
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .search-bar {
-  margin-top: 10px;
+  margin-top: 12px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
 }
 
-.search-bar input {
-  padding: 10px;
-  border-radius: 5px;
+.search-bar input[type="text"] {
+  width: 260px;
+  max-width: 60vw;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: none;
-  width: 200px;
   outline: none;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  font-size: 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+
+.search-bar input::placeholder {
+  color: rgba(255,255,255,0.6);
 }
 
 .search-bar button {
-  padding: 10px 15px;
+  padding: 10px 14px;
+  border-radius: 8px;
   border: none;
-  border-radius: 5px;
-  background: #ff9800;
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
   color: #fff;
   cursor: pointer;
-  transition: 0.3s;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
 .search-bar button:hover {
-  background: #e68900;
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.32);
 }
 
-/* ===============================
-   ANLIK HAVA DURUMU
-   =============================== */
+/* ---------- Main layout ---------- */
+main {
+  position: relative;
+  z-index: 40;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 18px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 18px auto;
+}
+
+/* Single column fallback */
+@media (max-width: 980px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+}
+
+/* ---------- Current weather panel ---------- */
 #current-weather {
-  text-align: center;
-  margin: 20px;
-  background: rgba(255,255,255,0.1);
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#current-weather h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 #weather-info {
-  font-size: 1.3em;
-  font-weight: bold;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
 }
 
-/* ===============================
-   10 GÜNLÜK TABLO
-   =============================== */
+/* small meta row */
+.weather-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.95rem;
+}
+
+/* ---------- Forecast table panel ---------- */
 #forecast-section {
-  width: 90%;
-  margin: 20px auto;
+  background: var(--panel-strong);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+#forecast-section h2 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: var(--muted);
 }
 
 #forecast {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  overflow: hidden;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
 }
 
-#forecast th, #forecast td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-#forecast th {
-  background: rgba(0,0,0,0.3);
-  font-size: 1.1em;
-}
-
-#forecast tr:hover {
-  background: rgba(255,255,255,0.2);
-  transition: 0.3s;
-}
-
-/* ===============================
-   ANİMASYONLAR VE TEMA
-   =============================== */
-canvas {
-  position: fixed;
+#forecast thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.06));
+  position: sticky;
   top: 0;
-  left: 0;
+  z-index: 2;
+}
+
+#forecast tbody tr {
+  transition: background 200ms ease;
+}
+
+#forecast tbody tr:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+#forecast td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+/* small badges for weather */
+.weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ---------- Canvas background ---------- */
+canvas#weatherCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Ensure main content sits above canvas */
+header, main, #controlPanel {
+  position: relative;
+  z-index: 10;
+}
+
+/* ---------- Control panel styles ---------- */
+#controlPanel {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  background: rgba(0,0,0,0.45);
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  z-index: var(--control-z);
+  min-width: 220px;
+}
+
+#controlPanel label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 6px;
+}
+
+#controlPanel input[type="range"] {
   width: 100%;
-  height: 100%;
-  z-index: -1;
+  accent-color: var(--accent);
+  margin-bottom: 8px;
 }
 
-/* Güneş efekti */
+#controlPanel button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#controlPanel button:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+
+/* ---------- Theme variants ---------- */
+body.night {
+  --bg-top: #0f2027;
+  --bg-bottom: #203a43;
+  --panel-bg: rgba(0,0,0,0.45);
+  --panel-strong: rgba(255,255,255,0.03);
+  --accent: #ffd54f;
+  --accent-dark: #ffb300;
+}
+
+/* ---------- Visual elements for weather icons ---------- */
 .sun {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, yellow 60%, orange 100%);
   position: absolute;
-  top: 50px;
-  right: 50px;
-  animation: pulse 5s infinite;
+  right: 40px;
+  top: 40px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff176, #ffb300 60%, #ff8f00 100%);
+  box-shadow: 0 12px 40px rgba(255,200,50,0.18), 0 6px 18px rgba(0,0,0,0.25);
+  z-index: 5;
+  animation: sunPulse 6s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
+@keyframes sunPulse {
+  0% { transform: scale(1); filter: blur(0px); opacity: 0.95; }
+  50% { transform: scale(1.06); filter: blur(0.6px); opacity: 1; }
+  100% { transform: scale(1); filter: blur(0px); opacity: 0.95; }
 }
 
-/* Bulut efekti */
 .cloud {
   position: absolute;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff, #f0f0f0);
   border-radius: 50%;
-  animation: moveClouds 60s linear infinite;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 5;
+  opacity: 0.95;
 }
 
-@keyframes moveClouds {
-  from { left: -200px; }
-  to { left: 120%; }
-}
-
-/* Yağmur damlaları */
+/* raindrop and snowflake helper classes for DOM-based fallback */
 .rain-drop {
   position: absolute;
   width: 2px;
-  height: 15px;
-  background: rgba(255,255,255,0.7);
-  animation: fall 1s linear infinite;
+  height: 14px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 2px;
+  transform: translateY(-100vh);
+  animation: rainFall linear infinite;
 }
 
-@keyframes fall {
-  from { transform: translateY(-20px); opacity: 1; }
-  to { transform: translateY(100vh); opacity: 0; }
+@keyframes rainFall {
+  to { transform: translateY(120vh); opacity: 0; }
 }
 
-/* Kar taneleri */
 .snowflake {
   position: absolute;
   color: #fff;
-  font-size: 1em;
-  animation: snow 10s linear infinite;
+  font-size: 14px;
+  opacity: 0.95;
+  transform: translateY(-100vh);
+  animation: snowFall linear infinite;
 }
 
-@keyframes snow {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(100vh) rotate(360deg); }
+@keyframes snowFall {
+  to { transform: translateY(120vh) rotate(360deg); opacity: 0.9; }
 }
 
-/* Gece modu */
-body.night {
-  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-}
-
-body.night header h1 {
-  color: #ffeb3b;
-}
-
-body.night #forecast th {
-  background: rgba(255,255,255,0.2);
-}
-
-/* Fırtına efekti */
+/* lightning overlay element */
 .lightning {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: white;
-  opacity: 0;
-  animation: flash 5s infinite;
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.0);
+  pointer-events: none;
+  z-index: 9;
+  mix-blend-mode: screen;
 }
 
-@keyframes flash {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  20% { opacity: 0; }
-  100% { opacity: 0; }
+/* subtle vignette to focus center */
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.18) 100%);
+  z-index: 2;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  #forecast th, #forecast td {
-    font-size: 0.9em;
-    padding: 8px;
-  }
-  header h1 {
-    font-size: 1.5em;
-  }
-  .search-bar input {
-    width: 150px;
-  }
+/* ---------- Accessibility and small screens ---------- */
+@media (max-width: 600px) {
+  header h1 { font-size: 1.2rem; }
+  .search-bar input[type="text"] { width: 140px; }
+  #controlPanel { left: 8px; right: 8px; bottom: 8px; min-width: auto; }
+  main { gap: 12px; padding: 12px; }
+  #current-weather { padding: 12px; }
+  #forecast-section { padding: 10px; }
 }
+
+/* ---------- Utility helpers ---------- */
+.hidden { display: none !important; }
+.center { display: flex; align-items: center; justify-content: center; }
+
+/* ---------- End of file ---------- */
