@@ -2,45 +2,118 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Hava Durumu Simülasyonu</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Oyunlu Site</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      text-align: center;
+    }
+    header {
+      padding: 20px;
+      background: rgba(0,0,0,0.5);
+      font-size: 24px;
+      font-weight: bold;
+    }
+    nav {
+      margin: 20px;
+    }
+    nav button {
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #ff9800;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    nav button:hover {
+      background: #e68900;
+    }
+    #gameArea {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px;
+    }
+    canvas {
+      background: #111;
+      border: 2px solid #fff;
+    }
+    #scoreBoard {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+    footer {
+      margin-top: 40px;
+      padding: 10px;
+      background: rgba(0,0,0,0.5);
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>🌤️ Hava Durumu Simülasyonu</h1>
-    <div class="search-bar">
-      <input type="text" id="cityInput" placeholder="Şehir girin...">
-      <button onclick="getWeather()">Göster</button>
-    </div>
-  </header>
+  <header>🎮 Oyunlu Site 🎮</header>
+  <nav>
+    <button onclick="startGame()">Oyunu Başlat</button>
+    <button onclick="resetGame()">Sıfırla</button>
+  </nav>
+  <div id="gameArea">
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+  </div>
+  <div id="scoreBoard">Skor: <span id="score">0</span></div>
+  <footer>© 2026 Senin Oyunlu Siten</footer>
 
-  <main>
-    <!-- Anlık hava durumu -->
-    <section id="current-weather">
-      <h2>Anlık Hava Durumu</h2>
-      <div id="weather-info">Henüz veri yok...</div>
-    </section>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let score = 0;
+    let ball = { x: 300, y: 200, radius: 15, dx: 4, dy: 3 };
 
-    <!-- 10 günlük tahmin tablosu -->
-    <section id="forecast-section">
-      <h2>10 Günlük Tahmin</h2>
-      <table id="forecast">
-        <thead>
-          <tr>
-            <th>Tarih</th>
-            <th>Durum</th>
-            <th>En Düşük</th>
-            <th>En Yüksek</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </main>
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#ff9800";
+      ctx.fill();
+      ctx.closePath();
+    }
 
-  <!-- Arka plan animasyonu -->
-  <canvas id="weatherCanvas"></canvas>
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBall();
+      ball.x += ball.dx;
+      ball.y += ball.dy;
 
-  <script src="script.js"></script>
+      // Kenarlardan sekme
+      if(ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+        ball.dx *= -1;
+        score++;
+      }
+      if(ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+        ball.dy *= -1;
+        score++;
+      }
+
+      document.getElementById("score").textContent = score;
+      requestAnimationFrame(update);
+    }
+
+    function startGame() {
+      score = 0;
+      ball.x = 300;
+      ball.y = 200;
+      update();
+    }
+
+    function resetGame() {
+      score = 0;
+      ball.x = 300;
+      ball.y = 200;
+      document.getElementById("score").textContent = score;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  </script>
 </body>
 </html>
