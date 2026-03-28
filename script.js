@@ -1,17 +1,15 @@
-body {
-  background: #111;
-  color: #0f0;
-  text-align: center;
-  font-family: Arial, sans-serif;
+// HLS akışını yükle
+if (Hls.isSupported()) {
+  var video = document.getElementById('video');
+  var hls = new Hls();
+  hls.loadSource('stream.m3u8'); // FFmpeg ile ürettiğin dosya
+  hls.attachMedia(video);
 }
 
-video {
-  width: 80%;
-  border: 3px solid #0f0;
-  margin-top: 20px;
+// Tarih/Saat overlay
+function updateOverlay() {
+  const now = new Date();
+  document.getElementById("overlay").innerText =
+    now.toLocaleDateString() + " " + now.toLocaleTimeString();
 }
-
-#overlay {
-  margin-top: 10px;
-  font-size: 18px;
-}
+setInterval(updateOverlay, 1000);
